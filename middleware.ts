@@ -6,21 +6,22 @@ const ALLOWED_ORIGIN = "https://trevicio-store.vercel.app";
 export default authMiddleware({
   publicRoutes: ["/api/:path*"],
 
-  async afterAuth(auth, req) {
-    // Handle preflight
+  afterAuth(_, req) {
+    // Handle CORS preflight without touching auth logic
     if (req.method === "OPTIONS") {
       const res = new NextResponse(null, { status: 204 });
-      setCorsHeaders(res);
+      addCorsHeaders(res);
       return res;
     }
 
+    // Continue normal Clerk flow
     const res = NextResponse.next();
-    setCorsHeaders(res);
+    addCorsHeaders(res);
     return res;
   },
 });
 
-function setCorsHeaders(res: NextResponse) {
+function addCorsHeaders(res: NextResponse) {
   res.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
   res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -28,5 +29,5 @@ function setCorsHeaders(res: NextResponse) {
 }
 
 export const config = {
-  matcher: ["/api/:path*"],
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
 };
