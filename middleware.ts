@@ -7,17 +7,16 @@ export default authMiddleware({
   publicRoutes: ["/api/:path*"],
 
   afterAuth(_, req) {
-    // Handle CORS preflight without touching auth logic
+    // Handle CORS preflight ONLY
     if (req.method === "OPTIONS") {
       const res = new NextResponse(null, { status: 204 });
       addCorsHeaders(res);
       return res;
     }
 
-    // Continue normal Clerk flow
-    const res = NextResponse.next();
-    addCorsHeaders(res);
-    return res;
+    // IMPORTANT:
+    // Return NOTHING so Clerk continues normal auth behavior
+    return;
   },
 });
 
