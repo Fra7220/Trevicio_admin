@@ -5,12 +5,29 @@ import { connectToDB } from "@/lib/mongoDB";
 import Product from "@/lib/models/Product";
 import Collection from "@/lib/models/Collection";
 
+const ALLOWED_ORIGIN = "https://trevicio-store.vercel.app";
+
+function setCorsHeaders(res: NextResponse) {
+  res.headers.set("Access-Control-Allow-Origin", ALLOWED_ORIGIN);
+  res.headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.headers.set("Access-Control-Allow-Credentials", "true");
+  return res;
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  const res = new NextResponse(null, { status: 204 });
+  return setCorsHeaders(res);
+}
+
 export const POST = async (req: NextRequest) => {
   try {
     const { userId } = auth();
 
     if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      const res = new NextResponse("Unauthorized", { status: 401 });
+      return setCorsHeaders(res);
     }
 
     await connectToDB();
@@ -29,9 +46,10 @@ export const POST = async (req: NextRequest) => {
     } = await req.json();
 
     if (!title || !description || !media || !category || !price || !expense) {
-      return new NextResponse("Not enough data to create a product", {
+      const res = new NextResponse("Not enough data to create a product", {
         status: 400,
       });
+      return setCorsHeaders(res);
     }
 
     const newProduct = await Product.create({
@@ -59,10 +77,12 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    return NextResponse.json(newProduct, { status: 200 });
+    const res = NextResponse.json(newProduct, { status: 200 });
+    return setCorsHeaders(res);
   } catch (err) {
     console.log("[products_POST]", err);
-    return new NextResponse("Internal Error", { status: 500 });
+    const res = new NextResponse("Internal Error", { status: 500 });
+    return setCorsHeaders(res);
   }
 };
 
@@ -71,15 +91,16 @@ export const GET = async (req: NextRequest) => {
     await connectToDB();
 
     const products = await Product.find()
-      .sort({ createdAt: "desc" })
+      .sort({ createdAt: -1 }) // same as "desc"
       .populate({ path: "collections", model: Collection });
 
-    return NextResponse.json(products, { status: 200 });
+    const res = NextResponse.json(products, { status: 200 });
+    return setCorsHeaders(res);
   } catch (err) {
     console.log("[products_GET]", err);
-    return new NextResponse("Internal Error", { status: 500 });
+    const res = new NextResponse("Internal Error", { status: 500 });
+    return setCorsHeaders(res);
   }
 };
 
 export const dynamic = "force-dynamic";
-
