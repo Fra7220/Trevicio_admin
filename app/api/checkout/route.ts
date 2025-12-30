@@ -87,7 +87,7 @@ ${productLines}
 Please confirm the order.`
     );
 
-    const whatsappLink = `https://wa.me/265991406247?text=${message}`;
+    const whatsappLink = `https://wa.me/265998152880?text=${message}`;
 
     return NextResponse.json(
       {
